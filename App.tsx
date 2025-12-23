@@ -6,7 +6,7 @@ import { supabase } from './supabaseClient';
 import { IconDashboard, IconPlay, IconSettings, IconPlus, IconSwap } from './components/Icons';
 import Timer from './components/Timer';
 import ProgressChart from './components/ProgressChart';
-import { getCoachInsight, analyzeExercise, getExerciseAlternatives, getFormTips } from './services/geminiService';
+import { getCoachInsight, analyzeExercise, getExerciseAlternatives, getFormTips, generateRoutine } from './services/geminiService';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
@@ -148,6 +148,56 @@ const App: React.FC = () => {
       setRoutines(updatedRoutines);
       await saveRoutines(updatedRoutines);
     }
+
+    setCustomInput("");
+    setIsAnalyzing(false);
+  };
+
+  const handleCreateRoutineAI = async () => {
+    if (!customInput.trim() || isAnalyzing) return;
+    setIsAnalyzing(true);
+
+    const { routineName, exercises: aiExercises } = await generateRoutine(customInput);
+
+    const newRoutineId = Math.random().toString(36).substr(2, 9);
+    const newExerciseIds: string[] = [];
+    const newTargets: Record<string, { sets: number; reps: number }> = {};
+    const newKnownExercises: Exercise[] = [];
+
+    for (const aiEx of aiExercises) {
+      // Reuse existing exercise if name matches (fuzzy match could be better but strict for now)
+      let ex = exercises.find(e => e.name.toLowerCase() === aiEx.name.toLowerCase()) || newKnownExercises.find(e => e.name.toLowerCase() === aiEx.name.toLowerCase());
+
+      if (!ex) {
+        ex = {
+          id: Math.random().toString(36).substr(2, 9),
+          name: aiEx.name,
+          muscleGroup: aiEx.muscleGroup as MuscleGroup, // Ensure type safety or mapping
+          referenceWeight: aiEx.suggestedWeight
+        };
+        await saveExercise(ex);
+        newKnownExercises.push(ex);
+      }
+
+      newExerciseIds.push(ex.id);
+      newTargets[ex.id] = { sets: aiEx.targetSets, reps: aiEx.targetReps };
+    }
+
+    if (newKnownExercises.length > 0) {
+      setExercises(prev => [...prev, ...newKnownExercises]);
+    }
+
+    const newRoutine: Routine = {
+      id: newRoutineId,
+      name: routineName,
+      exerciseIds: newExerciseIds,
+      targets: newTargets
+    };
+
+    const updatedRoutines = [...routines, newRoutine];
+    setRoutines(updatedRoutines);
+    await saveRoutines(updatedRoutines);
+    setLocalActiveRoutineId(newRoutineId);
 
     setCustomInput("");
     setIsAnalyzing(false);
@@ -303,81 +353,89 @@ const App: React.FC = () => {
           <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mt-1">Advanced Training OS</p>
         </div>
 
-        <div className="flex-1 space-y-3">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.3)] text-white' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
-          >
-            <IconDashboard className="w-5 h-5" />
-            <span className="font-bold tracking-tight">Tableau de Bord</span>
-          </button>
-
-          <div className="pt-8 pb-3 px-2 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Mes Programmes</div>
-          <div className="space-y-2">
-            {routines.map(r => (
-              <button
-                key={r.id}
-                onClick={() => { switchActiveRoutine(r.id); setActiveTab('workout'); }}
-                className={`w-full flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all duration-300 group ${activeRoutineId === r.id && activeTab === 'workout' ? 'bg-slate-800/80 text-blue-400 border border-blue-500/20' : 'text-slate-500 hover:bg-slate-800/30 hover:text-slate-300'}`}
-              >
-                <span className="font-bold text-sm truncate">{r.name}</span>
-                <div className={`w-1.5 h-1.5 rounded-full transition-all ${activeRoutineId === r.id && activeTab === 'workout' ? 'bg-blue-500 scale-110 shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'bg-transparent group-hover:bg-slate-700'}`}></div>
-              </button>
-            ))}
+        <div className="mb-12 flex justify-center w-full">
+          <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center font-black text-xl tracking-tighter shadow-xl shadow-slate-900/20">
+            PL
           </div>
         </div>
 
-        <div className="mt-8 space-y-4">
+        <div className="flex-1 flex flex-col space-y-8 w-full px-4">
           <button
-            onClick={() => setActiveTab('plan')}
-            className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 ${activeTab === 'plan' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-800/50 hover:text-white'}`}
+            onClick={() => setActiveTab('dashboard')}
+            className={`w-full aspect-square rounded-2xl flex items-center justify-center transition-all duration-300 relative group ${activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-300 hover:bg-slate-50 hover:text-blue-500'}`}
           >
-            <IconSettings className="w-5 h-5" />
-            <span className="font-bold tracking-tight">Paramètres</span>
+            <IconDashboard className="w-6 h-6" />
+            {activeTab === 'dashboard' && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/20 rounded-l-full"></div>}
+            <div className="absolute left-14 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+              Dashboard
+            </div>
           </button>
 
-          <div className="pt-6 border-t border-slate-800/50">
-            <div className="flex items-center space-x-4 px-2">
-              <div className="relative">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-black text-xl shadow-lg">
-                  {session.user.email?.[0].toUpperCase()}
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-[#0f172a] rounded-full"></div>
-              </div>
-              <div className="flex flex-col truncate min-w-0">
-                <span className="text-sm font-black truncate text-slate-200">{session.user.email?.split('@')[0]}</span>
-                <button
-                  onClick={signOut}
-                  className="text-[10px] text-slate-500 hover:text-red-400 font-black uppercase text-left tracking-widest transition-colors"
-                >
-                  Déconnexion
-                </button>
-              </div>
+          <button
+            onClick={() => setActiveTab('workout')}
+            className={`w-full aspect-square rounded-2xl flex items-center justify-center transition-all duration-300 relative group ${activeTab === 'workout' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-300 hover:bg-slate-50 hover:text-blue-500'}`}
+          >
+            <IconPlay className="w-6 h-6" />
+            {activeTab === 'workout' && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/20 rounded-l-full"></div>}
+            <div className="absolute left-14 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+              Workout
             </div>
-          </div>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('plan')}
+            className={`w-full aspect-square rounded-2xl flex items-center justify-center transition-all duration-300 relative group ${activeTab === 'plan' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-300 hover:bg-slate-50 hover:text-blue-500'}`}
+          >
+            <IconSettings className="w-6 h-6" />
+            {activeTab === 'plan' && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/20 rounded-l-full"></div>}
+            <div className="absolute left-14 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+              Plan
+            </div>
+          </button>
+        </div>
+
+        <div className="mt-auto flex flex-col items-center space-y-6">
+          {session ? (
+            <button
+              onClick={signOut}
+              className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+              title="Sign Out"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" /></svg>
+            </button>
+          ) : (
+            <button
+              onClick={signInWithGoogle}
+              className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors"
+              title="Sign In"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" /></svg>
+            </button>
+          )}
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 border-2 border-white shadow-lg"></div>
         </div>
       </nav>
 
-      {/* Main Area */}
-      <div className="flex-1 flex flex-col relative overflow-x-hidden">
-        <header className="sticky top-0 glass z-40 px-6 py-5 flex justify-between items-center border-b border-slate-100">
-          <div className="flex flex-col">
-            <h2 className="text-xl font-extrabold md:hidden text-slate-900 tracking-tight">PureLift</h2>
-            <span className="hidden md:block text-sm font-black text-slate-400 uppercase tracking-widest">
-              {activeTab === 'workout' ? activeRoutine?.name : activeTab}
-            </span>
+      {/* Main Content Area */}
+      <main className="pl-0 md:pl-24 bg-[#FAFAFA] min-h-screen pb-24 md:pb-0">
+        <header className="sticky top-0 z-40 bg-[#FAFAFA]/80 backdrop-blur-md px-6 py-6 md:px-12 md:py-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-[900] text-slate-900 tracking-tight">
+              {activeTab === 'dashboard' && 'Dashboard'}
+              {activeTab === 'workout' && 'Training Session'}
+              {activeTab === 'plan' && 'Programme'}
+            </h1>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+              {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
           </div>
-          {activeTab === 'workout' && currentSessionSets.length > 0 && (
-            <button
-              onClick={finishWorkout}
-              className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-md active:scale-95 transition-all"
-            >
-              Terminer la séance
-            </button>
-          )}
+
+          <div className="flex items-center space-x-4">
+            {/* Mobile User Menu / Sign In could go here if needed, but keeping it simple for now */}
+          </div>
         </header>
 
-        <main className="flex-1 w-full max-w-5xl mx-auto p-6 md:p-10 pb-32">
+        <div className="px-4 md:px-12 py-4 max-w-7xl mx-auto">
           {activeTab === 'dashboard' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-slide-up">
               {/* AI Coach Insight */}
@@ -840,23 +898,23 @@ const App: React.FC = () => {
                         <h3 className="text-3xl font-[900] tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-lg">{activeRoutine.name}</h3>
                       </div>
 
-                      <div className="relative flex-1 max-w-md">
+                      <div className="relative">
                         <input
                           type="text"
-                          placeholder="Ajouter via AI Coach..."
+                          placeholder="Décrivez votre séance idéale (ex: 'Dos Largeur & Biceps')..."
                           value={customInput}
                           onChange={(e) => setCustomInput(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleAddCustomExercise(false)}
-                          className="w-full pl-6 pr-14 py-4 bg-white/10 rounded-2xl border border-white/10 focus:outline-none focus:bg-white/20 transition-all text-lg placeholder:text-white/20"
+                          onKeyDown={(e) => e.key === 'Enter' && handleCreateRoutineAI()}
+                          className="w-full pl-6 pr-14 py-5 bg-white ios-card focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-lg font-medium placeholder:text-slate-400"
                         />
-                        <button onClick={() => handleAddCustomExercise(false)} disabled={isAnalyzing} className="absolute right-4 top-1/2 -translate-y-1/2 text-white">
-                          {isAnalyzing ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <IconPlus className="w-6 h-6" />}
+                        <button onClick={() => handleCreateRoutineAI()} disabled={isAnalyzing} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
+                          {isAnalyzing ? <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <div className="flex items-center space-x-1"><span className="text-xs font-black uppercase">Générer</span><IconPlus className="w-5 h-5" /></div>}
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 pb-12">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                     {exercises.map(ex => {
                       const isSelected = activeRoutine.exerciseIds.includes(ex.id);
                       return (
@@ -996,27 +1054,26 @@ const App: React.FC = () => {
               </div>
             </div>
           )}
-        </main>
+        </div>
+      </main>
 
-        {/* Bottom Nav Mobile */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 glass border-t border-slate-200 flex justify-around items-center h-20 px-4 z-50">
-          <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'dashboard' ? 'text-blue-600' : 'text-slate-400'}`}>
-            <IconDashboard className="w-6 h-6" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Stats</span>
-          </button>
-          <button onClick={() => setActiveTab('workout')} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'workout' ? 'text-blue-600' : 'text-slate-400'}`}>
-            <div className={`p-3 rounded-2xl -mt-8 shadow-lg transition-all ${activeTab === 'workout' ? 'bg-blue-600 text-white scale-110' : 'bg-slate-900 text-white'}`}>
-              <IconPlay className="w-6 h-6" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest mt-1">SÉANCE</span>
-          </button>
-          <button onClick={() => setActiveTab('plan')} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'plan' ? 'text-blue-600' : 'text-slate-400'}`}>
-            <IconSettings className="w-6 h-6" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">PLANS</span>
-          </button>
-        </nav>
-      </div>
-
+      {/* Bottom Nav Mobile */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 glass border-t border-slate-200 flex justify-around items-center h-20 px-4 z-50">
+        <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'dashboard' ? 'text-blue-600' : 'text-slate-400'}`}>
+          <IconDashboard className="w-6 h-6" />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Stats</span>
+        </button>
+        <button onClick={() => setActiveTab('workout')} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'workout' ? 'text-blue-600' : 'text-slate-400'}`}>
+          <div className={`p-3 rounded-2xl -mt-8 shadow-lg transition-all ${activeTab === 'workout' ? 'bg-blue-600 text-white scale-110' : 'bg-slate-900 text-white'}`}>
+            <IconPlay className="w-6 h-6" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest mt-1">SÉANCE</span>
+        </button>
+        <button onClick={() => setActiveTab('plan')} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'plan' ? 'text-blue-600' : 'text-slate-400'}`}>
+          <IconSettings className="w-6 h-6" />
+          <span className="text-[10px] font-bold uppercase tracking-widest">PLANS</span>
+        </button>
+      </nav>
       {isTimerVisible && <Timer initialSeconds={defaultRestTime} onClose={() => setIsTimerVisible(false)} />}
     </div>
   );

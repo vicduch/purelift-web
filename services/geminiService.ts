@@ -80,7 +80,7 @@ export const getExerciseAlternatives = async (exerciseName: string, muscleGroup:
 export const getFormTips = async (exerciseName: string): Promise<string[]> => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: `You are an expert strength coach. Give exactly 3 concise, actionable form tips for the exercise "${exerciseName}". Each tip should be one short sentence focusing on technique, safety, or muscle activation. Return as JSON array of strings.`,
       config: {
         responseMimeType: "application/json",
@@ -94,5 +94,55 @@ export const getFormTips = async (exerciseName: string): Promise<string[]> => {
   } catch (error) {
     console.error("AI Form Tips error:", error);
     return ["Gardez le dos droit", "Contrôlez le mouvement", "Respirez correctement"];
+  }
+};
+
+export const generateRoutine = async (prompt: string): Promise<{ routineName: string; exercises: { name: string; muscleGroup: MuscleGroup; suggestedWeight: number; targetSets: number; targetReps: number }[] }> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Create a comprehensive workout routine based on this request: "${prompt}". 
+      Return a JSON object with a creative 'routineName' and an array of 'exercises'. 
+      For each exercise, provide:
+      - 'name' (formal exercise name)
+      - 'muscleGroup' (one of: ${Object.values(MuscleGroup).join(', ')})
+      - 'suggestedWeight' (number, in kg, reasonable for intermediate)
+      - 'targetSets' (integer, usually 3-5)
+      - 'targetReps' (integer, usually 8-15)
+      Ensure the routine is balanced and effective.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            routineName: { type: Type.STRING },
+            exercises: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  muscleGroup: { type: Type.STRING, enum: Object.values(MuscleGroup) },
+                  suggestedWeight: { type: Type.NUMBER },
+                  targetSets: { type: Type.INTEGER },
+                  targetReps: { type: Type.INTEGER }
+                },
+                required: ["name", "muscleGroup", "suggestedWeight", "targetSets", "targetReps"]
+              }
+            }
+          },
+          required: ["routineName", "exercises"]
+        }
+      }
+    });
+
+    const result = JSON.parse(response.text || '{}');
+    return {
+      routineName: result.routineName || "New Routine",
+      exercises: result.exercises || []
+    };
+  } catch (error) {
+    console.error("AI Routine Generation error:", error);
+    return { routineName: "New Routine", exercises: [] };
   }
 };
