@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { WeeklyVolume, MuscleGroup } from "../types";
 
-const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY);
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 export const getCoachInsight = async (volumes: WeeklyVolume[]): Promise<string> => {
   const volumeSummary = volumes.map(v => `${v.muscle}: ${v.count}/${v.goal} sets`).join(', ');
