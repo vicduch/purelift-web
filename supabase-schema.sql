@@ -85,3 +85,25 @@ CREATE INDEX IF NOT EXISTS idx_routines_user_id ON routines(user_id);
 CREATE INDEX IF NOT EXISTS idx_set_logs_user_id ON set_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_set_logs_date ON set_logs(date DESC);
 CREATE INDEX IF NOT EXISTS idx_set_logs_exercise_id ON set_logs(exercise_id);
+
+-- 4. User Settings table
+CREATE TABLE IF NOT EXISTS user_settings (
+  id TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  volume_goals JSONB DEFAULT '{}',
+  default_rest_time INTEGER DEFAULT 90,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own settings" ON user_settings
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own settings" ON user_settings
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own settings" ON user_settings
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id);

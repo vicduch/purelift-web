@@ -76,3 +76,23 @@ export const getExerciseAlternatives = async (exerciseName: string, muscleGroup:
     return [];
   }
 };
+
+export const getFormTips = async (exerciseName: string): Promise<string[]> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: `You are an expert strength coach. Give exactly 3 concise, actionable form tips for the exercise "${exerciseName}". Each tip should be one short sentence focusing on technique, safety, or muscle activation. Return as JSON array of strings.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      }
+    });
+    return JSON.parse(response.text || '[]');
+  } catch (error) {
+    console.error("AI Form Tips error:", error);
+    return ["Gardez le dos droit", "Contrôlez le mouvement", "Respirez correctement"];
+  }
+};

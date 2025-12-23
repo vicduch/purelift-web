@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { MuscleGroup, Exercise, SetLog, WeeklyVolume, Routine } from './types';
-import { getExercises, getSets, getRoutines, saveSets, saveExercise, saveRoutines, signInWithGoogle, signOut } from './supabaseStore';
+import { MuscleGroup, Exercise, SetLog, WeeklyVolume, Routine, UserSettings, DEFAULT_VOLUME_GOALS } from './types';
+import { getExercises, getSets, getRoutines, saveSets, saveExercise, saveRoutines, signInWithGoogle, signOut, seedDefaultData, getUserSettings, saveUserSettings } from './supabaseStore';
 import { supabase } from './supabaseClient';
 import { IconDashboard, IconPlay, IconSettings, IconPlus, IconSwap } from './components/Icons';
 import Timer from './components/Timer';
-import { getCoachInsight, analyzeExercise, getExerciseAlternatives } from './services/geminiService';
+import ProgressChart from './components/ProgressChart';
+import { getCoachInsight, analyzeExercise, getExerciseAlternatives, getFormTips } from './services/geminiService';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
@@ -26,6 +27,13 @@ const App: React.FC = () => {
   const [isFindingAlternatives, setIsFindingAlternatives] = useState(false);
 
   const [currentSessionSets, setCurrentSessionSets] = useState<SetLog[]>([]);
+  const [volumeGoals, setVolumeGoals] = useState<Record<MuscleGroup, number>>(DEFAULT_VOLUME_GOALS);
+  const [defaultRestTime, setDefaultRestTime] = useState<number>(90);
+
+  // Form Tips State
+  const [formTipsExerciseId, setFormTipsExerciseId] = useState<string | null>(null);
+  const [formTips, setFormTips] = useState<string[]>([]);
+  const [isLoadingFormTips, setIsLoadingFormTips] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -42,14 +50,17 @@ const App: React.FC = () => {
   const loadData = async () => {
     if (!session) return;
     try {
-      const [exs, sts, rts] = await Promise.all([
-        getExercises(),
-        getSets(),
-        getRoutines()
-      ]);
+      // Seed default data for new users, or fetch existing
+      const { exercises: exs, routines: rts } = await seedDefaultData();
+      const sts = await getSets();
+      const settings = await getUserSettings();
       setExercises(exs);
       setAllSets(sts);
       setRoutines(rts);
+      if (settings) {
+        setVolumeGoals(settings.volumeGoals);
+        setDefaultRestTime(settings.defaultRestTime);
+      }
       if (rts.length > 0) setLocalActiveRoutineId(rts[0].id);
     } catch (err) {
       console.error("Error loading data:", err);
@@ -80,9 +91,9 @@ const App: React.FC = () => {
     return Object.entries(volumes).map(([muscle, count]) => ({
       muscle: muscle as MuscleGroup,
       count,
-      goal: 15
+      goal: volumeGoals[muscle as MuscleGroup] || 15
     })) as WeeklyVolume[];
-  }, [allSets, exercises]);
+  }, [allSets, exercises, volumeGoals]);
 
   useEffect(() => {
     if (weeklyVolumes.length > 0 && activeTab === 'dashboard') {
@@ -410,6 +421,24 @@ const App: React.FC = () => {
                   ))}
                 </div>
               </section>
+
+              {/* Progress Charts Section */}
+              <section className="lg:col-span-12 space-y-6">
+                <h3 className="text-xl font-bold text-slate-800">Progression des exercices</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {exercises.slice(0, 6).map(ex => {
+                    const exSets = allSets
+                      .filter(s => s.exerciseId === ex.id && s.completed)
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                    const chartData = exSets.map(s => ({ date: s.date, weight: s.weight }));
+                    return (
+                      <div key={ex.id} className="ios-card p-4">
+                        <ProgressChart data={chartData} exerciseName={ex.name} />
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
             </div>
           )}
 
@@ -458,7 +487,22 @@ const App: React.FC = () => {
                       <div key={exId} className="space-y-4">
                         <div className="flex justify-between items-start px-2">
                           <div>
-                            <h3 className="text-2xl font-black text-slate-900">{ex?.name}</h3>
+                            <button
+                              onClick={async () => {
+                                if (formTipsExerciseId === exId) {
+                                  setFormTipsExerciseId(null);
+                                  return;
+                                }
+                                setFormTipsExerciseId(exId);
+                                setIsLoadingFormTips(true);
+                                const tips = await getFormTips(ex?.name || '');
+                                setFormTips(tips);
+                                setIsLoadingFormTips(false);
+                              }}
+                              className="text-left hover:opacity-80 transition-opacity"
+                            >
+                              <h3 className="text-2xl font-black text-slate-900 underline decoration-blue-500/30 decoration-2 underline-offset-4">{ex?.name}</h3>
+                            </button>
                             <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{ex?.muscleGroup}</p>
                           </div>
                           <button
@@ -470,6 +514,30 @@ const App: React.FC = () => {
                           </button>
 
                         </div>
+
+                        {/* Form Tips */}
+                        {formTipsExerciseId === exId && (
+                          <div className="ios-card p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 animate-slide-up">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">💡 Conseils de forme</span>
+                              <button onClick={() => setFormTipsExerciseId(null)} className="text-slate-400 text-sm">✕</button>
+                            </div>
+                            {isLoadingFormTips ? (
+                              <div className="flex items-center space-x-2 text-sm text-slate-500">
+                                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                <span>Chargement des conseils...</span>
+                              </div>
+                            ) : (
+                              <ul className="space-y-1">
+                                {formTips.map((tip, i) => (
+                                  <li key={i} className="text-sm text-slate-700 flex items-start">
+                                    <span className="text-blue-500 mr-2">•</span>{tip}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        )}
 
                         {/* History Context */}
                         {
@@ -737,6 +805,52 @@ const App: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Volume Goals Settings */}
+              <div className="mt-12 space-y-6">
+                <h3 className="text-xl font-bold text-slate-800">Objectifs de volume hebdomadaire</h3>
+                <p className="text-slate-500 text-sm">Définissez le nombre de séries cibles par groupe musculaire.</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {Object.values(MuscleGroup).map(muscle => (
+                    <div key={muscle} className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+                      <span className="text-sm font-bold text-slate-700">{muscle}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="30"
+                        value={volumeGoals[muscle] || 15}
+                        onChange={async (e) => {
+                          const newGoals = { ...volumeGoals, [muscle]: parseInt(e.target.value) || 0 };
+                          setVolumeGoals(newGoals);
+                          await saveUserSettings({ volumeGoals: newGoals, defaultRestTime });
+                        }}
+                        className="w-16 bg-slate-100 rounded-lg px-3 py-2 text-center font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rest Timer Settings */}
+              <div className="mt-8 space-y-4">
+                <h3 className="text-xl font-bold text-slate-800">Timer de repos par défaut</h3>
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center justify-between max-w-sm">
+                  <span className="text-sm font-bold text-slate-700">Durée (secondes)</span>
+                  <input
+                    type="number"
+                    min="30"
+                    max="300"
+                    step="15"
+                    value={defaultRestTime}
+                    onChange={async (e) => {
+                      const newTime = parseInt(e.target.value) || 90;
+                      setDefaultRestTime(newTime);
+                      await saveUserSettings({ volumeGoals, defaultRestTime: newTime });
+                    }}
+                    className="w-20 bg-slate-100 rounded-lg px-3 py-2 text-center font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
             </div>
           )}
         </main>
@@ -760,7 +874,7 @@ const App: React.FC = () => {
         </nav>
       </div>
 
-      {isTimerVisible && <Timer initialSeconds={90} onClose={() => setIsTimerVisible(false)} />}
+      {isTimerVisible && <Timer initialSeconds={defaultRestTime} onClose={() => setIsTimerVisible(false)} />}
     </div>
   );
 };

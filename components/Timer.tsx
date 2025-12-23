@@ -23,6 +23,11 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds = 90, onClose }) => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     }
 
+    // 10-second warning beep
+    if (timeLeft === 10 && isActive) {
+      playBeep();
+    }
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };

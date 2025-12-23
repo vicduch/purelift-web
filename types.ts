@@ -45,3 +45,19 @@ export interface WeeklyVolume {
   count: number;
   goal: number;
 }
+
+export interface UserSettings {
+  id?: string;
+  user_id?: string;
+  volumeGoals: Record<MuscleGroup, number>; // muscle -> weekly set goal
+  defaultRestTime: number; // seconds
+}
+
+export const DEFAULT_VOLUME_GOALS: Record<MuscleGroup, number> = {
+  [MuscleGroup.Chest]: 15,
+  [MuscleGroup.Back]: 15,
+  [MuscleGroup.Legs]: 18,
+  [MuscleGroup.Shoulders]: 12,
+  [MuscleGroup.Arms]: 10,
+  [MuscleGroup.Core]: 8
+};
