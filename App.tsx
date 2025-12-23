@@ -34,6 +34,7 @@ const App: React.FC = () => {
   const [formTipsExerciseId, setFormTipsExerciseId] = useState<string | null>(null);
   const [formTips, setFormTips] = useState<string[]>([]);
   const [isLoadingFormTips, setIsLoadingFormTips] = useState(false);
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'All'>('All');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -347,11 +348,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#f8fafc]">
       {/* Sidebar Navigation (Desktop) */}
-      <nav className="hidden md:flex flex-col w-80 bg-[#0f172a] text-white h-screen sticky top-0 p-8 overflow-y-auto no-scrollbar border-r border-slate-800/50">
-        <div className="mb-12">
-          <h1 className="text-3xl font-[900] tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">PURELIFT</h1>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mt-1">Advanced Training OS</p>
-        </div>
+      <nav className="hidden md:flex flex-col w-24 bg-[#0f172a] text-white h-screen sticky top-0 py-8 overflow-hidden items-center border-r border-slate-800/50">
 
         <div className="mb-12 flex justify-center w-full">
           <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center font-black text-xl tracking-tighter shadow-xl shadow-slate-900/20">
@@ -394,30 +391,21 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        <div className="mt-auto flex flex-col items-center space-y-6">
-          {session ? (
+        <div className="mt-auto flex flex-col items-center space-y-6 pb-4">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 border-2 border-white shadow-lg"></div>
+          {session && (
             <button
               onClick={signOut}
-              className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-              title="Sign Out"
+              className="text-[10px] text-slate-500 hover:text-red-400 font-black uppercase tracking-widest transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" /></svg>
-            </button>
-          ) : (
-            <button
-              onClick={signInWithGoogle}
-              className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors"
-              title="Sign In"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" /></svg>
+              Out
             </button>
           )}
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 border-2 border-white shadow-lg"></div>
         </div>
       </nav>
 
       {/* Main Content Area */}
-      <main className="pl-0 md:pl-24 bg-[#FAFAFA] min-h-screen pb-24 md:pb-0">
+      <main className="flex-1 bg-[#FAFAFA] min-h-screen pb-24 md:pb-0">
         <header className="sticky top-0 z-40 bg-[#FAFAFA]/80 backdrop-blur-md px-6 py-6 md:px-12 md:py-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-[900] text-slate-900 tracking-tight">
@@ -914,81 +902,104 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                    {exercises.map(ex => {
-                      const isSelected = activeRoutine.exerciseIds.includes(ex.id);
-                      return (
-                        <div key={ex.id} className={`rounded-[2rem] border-2 transition-all duration-300 overflow-hidden ${isSelected ? 'border-blue-500 bg-white shadow-xl shadow-blue-500/5' : 'border-white bg-white shadow-sm opacity-60 hover:opacity-100 hover:border-slate-100'}`}>
-                          <div className="p-6 flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black ${isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400'}`}>
-                                {ex.name[0]}
-                              </div>
-                              <div>
-                                <div className="font-black text-slate-900 group-hover:text-blue-600">{ex.name}</div>
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{ex.muscleGroup}</div>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                const newIds = isSelected
-                                  ? activeRoutine.exerciseIds.filter(id => id !== ex.id)
-                                  : [...activeRoutine.exerciseIds, ex.id];
-                                const updatedRoutines = routines.map(r => r.id === activeRoutineId ? { ...r, exerciseIds: newIds } : r);
-                                setRoutines(updatedRoutines);
-                                saveRoutines(updatedRoutines);
-                              }}
-                              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 text-slate-300'}`}
-                            >
-                              {isSelected ? <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" /></svg> : <IconPlus className="w-5 h-5" />}
-                            </button>
-                          </div>
+                  {/* Muscle Group Filter */}
+                  <div className="flex flex-wrap gap-2 overflow-x-auto pb-4 no-scrollbar">
+                    <button
+                      onClick={() => setSelectedMuscleGroup('All')}
+                      className={`px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${selectedMuscleGroup === 'All' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'}`}
+                    >
+                      Tous
+                    </button>
+                    {Object.values(MuscleGroup).map(m => (
+                      <button
+                        key={m}
+                        onClick={() => setSelectedMuscleGroup(m)}
+                        className={`px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedMuscleGroup === m ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'}`}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
 
-                          {isSelected && (
-                            <div className="px-6 py-6 bg-slate-50 flex items-center justify-between gap-6 border-t border-slate-100">
-                              <div className="flex items-center gap-6">
-                                <div className="flex flex-col">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Séries</span>
-                                  <input
-                                    type="number" min="1" max="10"
-                                    value={activeRoutine.targets?.[ex.id]?.sets || 3}
-                                    onChange={(e) => {
-                                      const val = parseInt(e.target.value) || 3;
-                                      const currentTargets = activeRoutine.targets || {};
-                                      const updatedRoutines = routines.map(r => r.id === activeRoutineId ? {
-                                        ...r,
-                                        targets: { ...currentTargets, [ex.id]: { ...(currentTargets[ex.id] || { reps: 10 }), sets: val } }
-                                      } : r);
-                                      setRoutines(updatedRoutines);
-                                      saveRoutines(updatedRoutines);
-                                    }}
-                                    className="w-16 bg-white border border-slate-200 rounded-xl px-2 py-2 text-center font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                  />
+                  <div className="mt-4"></div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {exercises
+                      .filter(ex => selectedMuscleGroup === 'All' || ex.muscleGroup === selectedMuscleGroup)
+                      .map(ex => {
+                        const isSelected = activeRoutine.exerciseIds.includes(ex.id);
+                        return (
+                          <div key={ex.id} className={`rounded-[2rem] border-2 transition-all duration-300 overflow-hidden ${isSelected ? 'border-blue-500 bg-white shadow-xl shadow-blue-500/5' : 'border-white bg-white shadow-sm opacity-60 hover:opacity-100 hover:border-slate-100'}`}>
+                            <div className="p-6 flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black ${isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400'}`}>
+                                  {ex.name[0]}
                                 </div>
-                                <div className="flex flex-col">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Répétitions</span>
-                                  <input
-                                    type="number" min="1" max="50"
-                                    value={activeRoutine.targets?.[ex.id]?.reps || 10}
-                                    onChange={async (e) => {
-                                      const val = parseInt(e.target.value) || 10;
-                                      const currentTargets = activeRoutine.targets || {};
-                                      const updatedRoutines = routines.map(r => r.id === activeRoutineId ? {
-                                        ...r,
-                                        targets: { ...currentTargets, [ex.id]: { ...(currentTargets[ex.id] || { sets: 3 }), reps: val } }
-                                      } : r);
-                                      setRoutines(updatedRoutines);
-                                      await saveRoutines(updatedRoutines);
-                                    }}
-                                    className="w-16 bg-white border border-slate-200 rounded-xl px-2 py-2 text-center font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                  />
+                                <div>
+                                  <div className="font-black text-slate-900 group-hover:text-blue-600">{ex.name}</div>
+                                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{ex.muscleGroup}</div>
                                 </div>
                               </div>
+                              <button
+                                onClick={() => {
+                                  const newIds = isSelected
+                                    ? activeRoutine.exerciseIds.filter(id => id !== ex.id)
+                                    : [...activeRoutine.exerciseIds, ex.id];
+                                  const updatedRoutines = routines.map(r => r.id === activeRoutineId ? { ...r, exerciseIds: newIds } : r);
+                                  setRoutines(updatedRoutines);
+                                  saveRoutines(updatedRoutines);
+                                }}
+                                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 text-slate-300'}`}
+                              >
+                                {isSelected ? <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" /></svg> : <IconPlus className="w-5 h-5" />}
+                              </button>
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
+
+                            {isSelected && (
+                              <div className="px-6 py-6 bg-slate-50 flex items-center justify-between gap-6 border-t border-slate-100">
+                                <div className="flex items-center gap-6">
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Séries</span>
+                                    <input
+                                      type="number" min="1" max="10"
+                                      value={activeRoutine.targets?.[ex.id]?.sets || 3}
+                                      onChange={(e) => {
+                                        const val = parseInt(e.target.value) || 3;
+                                        const currentTargets = activeRoutine.targets || {};
+                                        const updatedRoutines = routines.map(r => r.id === activeRoutineId ? {
+                                          ...r,
+                                          targets: { ...currentTargets, [ex.id]: { ...(currentTargets[ex.id] || { reps: 10 }), sets: val } }
+                                        } : r);
+                                        setRoutines(updatedRoutines);
+                                        saveRoutines(updatedRoutines);
+                                      }}
+                                      className="w-16 bg-white border border-slate-200 rounded-xl px-2 py-2 text-center font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Répétitions</span>
+                                    <input
+                                      type="number" min="1" max="50"
+                                      value={activeRoutine.targets?.[ex.id]?.reps || 10}
+                                      onChange={async (e) => {
+                                        const val = parseInt(e.target.value) || 10;
+                                        const currentTargets = activeRoutine.targets || {};
+                                        const updatedRoutines = routines.map(r => r.id === activeRoutineId ? {
+                                          ...r,
+                                          targets: { ...currentTargets, [ex.id]: { ...(currentTargets[ex.id] || { sets: 3 }), reps: val } }
+                                        } : r);
+                                        setRoutines(updatedRoutines);
+                                        await saveRoutines(updatedRoutines);
+                                      }}
+                                      className="w-16 bg-white border border-slate-200 rounded-xl px-2 py-2 text-center font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               )}
