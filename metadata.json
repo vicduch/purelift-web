@@ -1,0 +1,8 @@
+
+{
+  "name": "PureLift Web",
+  "description": "A high-performance, responsive web application for progressive overload and volume tracking.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
