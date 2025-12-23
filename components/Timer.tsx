@@ -23,7 +23,6 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds = 90, onClose }) => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     }
 
-    // 10-second warning beep
     if (timeLeft === 10 && isActive) {
       playBeep();
     }
@@ -39,45 +38,53 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds = 90, onClose }) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const progress = (timeLeft / initialSeconds) * 100;
+
   return (
-    <div className="fixed bottom-24 right-4 md:right-8 z-50 animate-bounce-in">
-      <div className="glass text-slate-900 px-6 py-4 rounded-3xl flex items-center space-x-6 shadow-2xl border border-white/50">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resting</span>
-          <div className="text-2xl font-mono font-black text-blue-600">
-            {formatTime(timeLeft)}
+    <div className="fixed bottom-12 right-12 z-50 animate-slide-up">
+      <div className="bg-[#0f172a] text-white p-8 rounded-[3rem] shadow-2xl shadow-blue-500/20 border border-white/5 flex flex-col items-center space-y-6 min-w-[300px] relative overflow-hidden">
+        {/* Background Glow */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl"></div>
+
+        <div className="relative w-32 h-32 flex items-center justify-center">
+          {/* SVG Progress Circle */}
+          <svg className="w-full h-full -rotate-90">
+            <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/5" />
+            <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent"
+              className="text-blue-500 transition-all duration-1000"
+              strokeDasharray={364.4}
+              strokeDashoffset={364.4 - (364.4 * progress) / 100}
+              strokeLinecap="round"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-3xl font-[900] tracking-tighter">{formatTime(timeLeft)}</span>
+            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Séquence Repos</span>
           </div>
         </div>
-        <div className="h-10 w-px bg-slate-200" />
-        <div className="flex space-x-3">
+
+        <div className="flex items-center space-x-4 w-full">
           <button
             onClick={() => setTimeLeft(prev => prev + 30)}
-            className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-lg font-bold hover:bg-slate-200 transition-colors"
+            className="flex-1 h-14 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center text-sm font-black transition-all border border-white/5 active:scale-95"
           >
-            +
+            +30s
           </button>
           <button
             onClick={() => setTimeLeft(prev => Math.max(0, prev - 30))}
-            className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-lg font-bold hover:bg-slate-200 transition-colors"
+            className="flex-1 h-14 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center text-sm font-black transition-all border border-white/5 active:scale-95"
           >
-            -
-          </button>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center font-bold hover:bg-red-200 transition-colors"
-          >
-            ✕
+            -30s
           </button>
         </div>
+
+        <button
+          onClick={onClose}
+          className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+        >
+          Reprendre l'effort
+        </button>
       </div>
-      <style>{`
-        @keyframes bounceIn { 
-          0% { transform: translateY(100px); opacity: 0; }
-          60% { transform: translateY(-10px); opacity: 1; }
-          100% { transform: translateY(0); }
-        }
-        .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-      `}</style>
     </div>
   );
 };

@@ -297,58 +297,65 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#f8fafc]">
       {/* Sidebar Navigation (Desktop) */}
-      <nav className="hidden md:flex flex-col w-72 bg-slate-900 text-white h-screen sticky top-0 p-6 overflow-y-auto no-scrollbar">
-        <div className="mb-10">
-          <h1 className="text-2xl font-black tracking-tighter text-blue-500">PURELIFT</h1>
-          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Pro Multi-Routine Engine</p>
+      <nav className="hidden md:flex flex-col w-80 bg-[#0f172a] text-white h-screen sticky top-0 p-8 overflow-y-auto no-scrollbar border-r border-slate-800/50">
+        <div className="mb-12">
+          <h1 className="text-3xl font-[900] tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">PURELIFT</h1>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mt-1">Advanced Training OS</p>
         </div>
 
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-3">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-blue-600 shadow-lg' : 'hover:bg-slate-800'}`}
+            className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.3)] text-white' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
           >
             <IconDashboard className="w-5 h-5" />
-            <span className="font-semibold">Tableau de bord</span>
+            <span className="font-bold tracking-tight">Tableau de Bord</span>
           </button>
-        </div>
 
-        <div className="mt-auto pt-6 border-t border-slate-800 space-y-4">
-          <div className="flex items-center space-x-3 px-4">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-lg">
-              {session.user.email?.[0].toUpperCase()}
-            </div>
-            <div className="flex flex-col truncate">
-              <span className="text-sm font-bold truncate">{session.user.email}</span>
+          <div className="pt-8 pb-3 px-2 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Mes Programmes</div>
+          <div className="space-y-2">
+            {routines.map(r => (
               <button
-                onClick={signOut}
-                className="text-[10px] text-slate-500 hover:text-red-400 font-bold uppercase text-left tracking-widest"
+                key={r.id}
+                onClick={() => { switchActiveRoutine(r.id); setActiveTab('workout'); }}
+                className={`w-full flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all duration-300 group ${activeRoutineId === r.id && activeTab === 'workout' ? 'bg-slate-800/80 text-blue-400 border border-blue-500/20' : 'text-slate-500 hover:bg-slate-800/30 hover:text-slate-300'}`}
               >
-                Déconnexion
+                <span className="font-bold text-sm truncate">{r.name}</span>
+                <div className={`w-1.5 h-1.5 rounded-full transition-all ${activeRoutineId === r.id && activeTab === 'workout' ? 'bg-blue-500 scale-110 shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'bg-transparent group-hover:bg-slate-700'}`}></div>
               </button>
-            </div>
+            ))}
           </div>
         </div>
 
-        <div className="pt-6 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Mes Programmes</div>
-        {routines.map(r => (
+        <div className="mt-8 space-y-4">
           <button
-            key={r.id}
-            onClick={() => { switchActiveRoutine(r.id); setActiveTab('workout'); }}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${activeRoutineId === r.id && activeTab === 'workout' ? 'bg-slate-800 text-blue-400' : 'hover:bg-slate-800 text-slate-300'}`}
+            onClick={() => setActiveTab('plan')}
+            className={`w-full flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 ${activeTab === 'plan' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-800/50 hover:text-white'}`}
           >
-            <span className="font-medium text-sm truncate">{r.name}</span>
-            {activeRoutineId === r.id && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
+            <IconSettings className="w-5 h-5" />
+            <span className="font-bold tracking-tight">Paramètres</span>
           </button>
-        ))}
 
-        <button
-          onClick={() => setActiveTab('plan')}
-          className={`w-full flex items-center space-x-3 px-4 py-3 mt-4 rounded-xl transition-all ${activeTab === 'plan' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}
-        >
-          <IconSettings className="w-5 h-5" />
-          <span className="font-semibold">Gestion Routines</span>
-        </button>
+          <div className="pt-6 border-t border-slate-800/50">
+            <div className="flex items-center space-x-4 px-2">
+              <div className="relative">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-black text-xl shadow-lg">
+                  {session.user.email?.[0].toUpperCase()}
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-[#0f172a] rounded-full"></div>
+              </div>
+              <div className="flex flex-col truncate min-w-0">
+                <span className="text-sm font-black truncate text-slate-200">{session.user.email?.split('@')[0]}</span>
+                <button
+                  onClick={signOut}
+                  className="text-[10px] text-slate-500 hover:text-red-400 font-black uppercase text-left tracking-widest transition-colors"
+                >
+                  Déconnexion
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </nav>
 
       {/* Main Area */}
@@ -372,29 +379,58 @@ const App: React.FC = () => {
 
         <main className="flex-1 w-full max-w-5xl mx-auto p-6 md:p-10 pb-32">
           {activeTab === 'dashboard' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-slide-up">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-slide-up">
+              {/* AI Coach Insight */}
               <section className="lg:col-span-12">
-                <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
-                  <div className="relative z-10">
-                    <h2 className="text-xs font-bold uppercase tracking-[0.2em] opacity-50 mb-3">Conseil PureCoach</h2>
-                    <p className="text-2xl font-semibold leading-relaxed max-w-3xl">"{coachInsight}"</p>
+                <div className="relative group perspective-1000">
+                  <div className="absolute inset-0 bg-blue-600 rounded-[2.5rem] blur-2xl opacity-10 group-hover:opacity-20 transition-opacity"></div>
+                  <div className="relative bg-[#0f172a] rounded-[2.5rem] p-10 overflow-hidden shadow-2xl border border-white/5">
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
+                      <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-3xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" /></svg>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                          <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-[900] uppercase tracking-widest rounded-full border border-blue-500/20">PureCoach Intelligence</span>
+                          <div className="flex space-x-1">
+                            <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+                            <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse delay-75"></div>
+                          </div>
+                        </div>
+                        <p className="text-2xl md:text-3xl font-black text-white leading-tight tracking-tight italic">
+                          "{coachInsight}"
+                        </p>
+                      </div>
+                    </div>
+                    {/* Abstract Shapes */}
+                    <div className="absolute top-[-10%] right-[-5%] w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-[-20%] left-[10%] w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl"></div>
                   </div>
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
                 </div>
               </section>
 
-              <section className="lg:col-span-8 space-y-6">
-                <h3 className="text-xl font-bold text-slate-800">Volume Hebdomadaire</h3>
-                <div className="ios-card p-6 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+              {/* Weekly Volume Stats */}
+              <section className="lg:col-span-8 space-y-8">
+                <div className="flex justify-between items-end px-2">
+                  <h3 className="text-2xl font-black text-slate-800 tracking-tight">Analyse du Volume</h3>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Semaine en cours</p>
+                </div>
+                <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-10">
                   {weeklyVolumes.map(v => (
-                    <div key={v.muscle} className="space-y-2">
-                      <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-tighter">
-                        <span>{v.muscle}</span>
-                        <span className={v.count >= v.goal ? 'text-green-500' : ''}>{v.count}/{v.goal}</span>
+                    <div key={v.muscle} className="space-y-4">
+                      <div className="flex justify-between items-end">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-2 h-2 rounded-full ${v.count >= v.goal ? 'bg-green-500' : 'bg-blue-600'}`}></div>
+                          <span className="text-xs font-black text-slate-800 uppercase tracking-tight">{v.muscle}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-lg font-black ${v.count >= v.goal ? 'text-green-500' : 'text-slate-800'}`}>{v.count}</span>
+                          <span className="text-xs font-bold text-slate-300 ml-1">/ {v.goal} séries</span>
+                        </div>
                       </div>
-                      <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-4 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-[3px]">
                         <div
-                          className={`h-full transition-all duration-1000 ease-out ${v.count >= v.goal ? 'bg-green-500' : 'bg-blue-600'}`}
+                          className={`h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${v.count >= v.goal ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
                           style={{ width: `${Math.min(100, (v.count / v.goal) * 100)}%` }}
                         />
                       </div>
@@ -403,79 +439,114 @@ const App: React.FC = () => {
                 </div>
               </section>
 
-              <section className="lg:col-span-4 space-y-6">
-                <h3 className="text-xl font-bold text-slate-800">Séance du jour</h3>
-                <div className="space-y-3">
-                  {routines.slice(0, 4).map(r => (
+              {/* Quick Start */}
+              <section className="lg:col-span-4 space-y-8">
+                <h3 className="text-2xl font-black text-slate-800 tracking-tight px-2">Démarrage Rapide</h3>
+                <div className="space-y-4">
+                  {routines.slice(0, 3).map((r, i) => (
                     <button
                       key={r.id}
                       onClick={() => { switchActiveRoutine(r.id); startWorkout(r.id); }}
-                      className={`w-full p-5 rounded-2xl flex items-center justify-between border-2 transition-all ${activeRoutineId === r.id ? 'border-blue-500 bg-blue-50/30' : 'border-white bg-white hover:border-slate-100'}`}
+                      className="group w-full p-6 rounded-[2rem] bg-white border border-slate-100 shadow-lg shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-between"
                     >
-                      <div className="text-left">
-                        <div className="font-bold text-slate-900">{r.name}</div>
-                        <div className="text-[10px] text-slate-400 font-bold uppercase">{r.exerciseIds.length} exercices</div>
+                      <div className="flex items-center space-x-5">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black ${i === 0 ? 'bg-blue-50 text-blue-600' : i === 1 ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-600'}`}>
+                          {r.name[0]}
+                        </div>
+                        <div className="text-left">
+                          <div className="font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{r.name}</div>
+                          <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{r.exerciseIds.length} exercices certifiés</div>
+                        </div>
                       </div>
-                      <IconPlay className={`w-6 h-6 ${activeRoutineId === r.id ? 'text-blue-500' : 'text-slate-200'}`} />
+                      <div className="w-10 h-10 rounded-full bg-slate-50 group-hover:bg-blue-600 flex items-center justify-center transition-all group-hover:scale-110">
+                        <IconPlay className="w-4 h-4 text-slate-300 group-hover:text-white transition-colors" />
+                      </div>
                     </button>
                   ))}
                 </div>
               </section>
 
               {/* Progress Charts Section */}
-              <section className="lg:col-span-12 space-y-6">
-                <h3 className="text-xl font-bold text-slate-800">Progression des exercices</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {exercises.slice(0, 6).map(ex => {
+              <section className="lg:col-span-12 space-y-8 pt-6">
+                <div className="flex justify-between items-end px-2">
+                  <h3 className="text-2xl font-black text-slate-800 tracking-tight">Progression des Exercices</h3>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Performances récentes</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {exercises.filter(ex => allSets.some(s => s.exerciseId === ex.id && s.completed)).slice(0, 6).map(ex => {
                     const exSets = allSets
                       .filter(s => s.exerciseId === ex.id && s.completed)
                       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                     const chartData = exSets.map(s => ({ date: s.date, weight: s.weight }));
                     return (
-                      <div key={ex.id} className="ios-card p-4">
+                      <div key={ex.id} className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 hover:shadow-2xl hover:border-blue-100 transition-all group">
                         <ProgressChart data={chartData} exerciseName={ex.name} />
                       </div>
                     );
                   })}
+                  {exercises.filter(ex => allSets.some(s => s.exerciseId === ex.id && s.completed)).length === 0 && (
+                    <div className="col-span-full py-20 bg-slate-50/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400">
+                      <div className="w-16 h-16 bg-white rounded-2xl shadow-sm mb-4 flex items-center justify-center">
+                        <svg className="w-8 h-8 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 12l3-3 3 3 4-4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" /></svg>
+                      </div>
+                      <p className="font-bold text-sm uppercase tracking-widest">Connectez-vous pour voir votre progression</p>
+                    </div>
+                  )}
                 </div>
               </section>
             </div>
           )}
 
           {activeTab === 'workout' && (
-            <div className="max-w-3xl mx-auto space-y-8 animate-slide-up">
+            <div className="max-w-4xl mx-auto space-y-12 animate-slide-up">
               {currentSessionSets.length === 0 ? (
-                <div className="space-y-6 text-center py-20">
-                  <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <IconPlay className="w-10 h-10 text-blue-600" />
+                <div className="relative group perspective-1000 py-10">
+                  <div className="absolute inset-0 bg-blue-600/5 rounded-[3rem] blur-3xl"></div>
+                  <div className="relative bg-white rounded-[3rem] p-12 shadow-2xl shadow-slate-200/50 border border-slate-100 text-center space-y-8">
+                    <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[2rem] flex items-center justify-center mx-auto shadow-xl shadow-blue-500/20 rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                      <IconPlay className="w-10 h-10 text-white" />
+                    </div>
+                    <div className="space-y-3">
+                      <h2 className="text-3xl font-[900] text-slate-900 tracking-tight">Prêt pour {activeRoutine?.name} ?</h2>
+                      <p className="text-slate-500 max-w-sm mx-auto font-medium leading-relaxed">
+                        Chaque répétition compte. Vos charges de référence ont été calibrées sur votre dernière performance.
+                      </p>
+                    </div>
+                    <div className="pt-4 flex flex-col items-center gap-4">
+                      <button
+                        onClick={() => startWorkout()}
+                        className="bg-[#0f172a] text-white px-12 py-5 rounded-[2rem] font-black shadow-2xl shadow-slate-900/20 active:scale-95 hover:bg-blue-600 transition-all duration-300 tracking-tight"
+                      >
+                        Lancer l'entraînement
+                      </button>
+                      <div className="flex items-center space-x-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+                        <span>Sync cloud active</span>
+                      </div>
+                    </div>
                   </div>
-                  <h2 className="text-2xl font-black text-slate-900">Prêt pour {activeRoutine?.name} ?</h2>
-                  <p className="text-slate-500 max-w-xs mx-auto">Vos charges de référence ont été mises à jour selon votre dernière séance.</p>
-                  <button
-                    onClick={() => startWorkout()}
-                    className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all"
-                  >
-                    Lancer l'entraînement
-                  </button>
                 </div>
               ) : (
-                <div className="space-y-10">
+                <div className="space-y-12 bg-slate-50/50 p-6 md:p-10 rounded-[3rem] border border-slate-100/50">
                   <div className="relative group">
-                    <input
-                      type="text"
-                      placeholder="Ajouter un exo à la volée (ex: 'Curl Marteau')..."
-                      value={customInput}
-                      onChange={(e) => setCustomInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddCustomExercise(true)}
-                      className="w-full pl-6 pr-14 py-5 bg-white ios-card focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-lg font-medium"
-                    />
-                    <button
-                      onClick={() => handleAddCustomExercise(true)}
-                      disabled={isAnalyzing}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 text-white rounded-2xl shadow-lg disabled:opacity-30 active:scale-95 transition-all"
-                    >
-                      {isAnalyzing ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <IconPlus className="w-6 h-6" />}
-                    </button>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2rem] blur opacity-10 group-focus-within:opacity-20 transition duration-500"></div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Ajouter un exercice à la volée..."
+                        value={customInput}
+                        onChange={(e) => setCustomInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddCustomExercise(true)}
+                        className="w-full pl-8 pr-20 py-6 bg-white rounded-[2rem] shadow-xl shadow-slate-200/30 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-xl font-black placeholder:text-slate-300 text-slate-900"
+                      />
+                      <button
+                        onClick={() => handleAddCustomExercise(true)}
+                        disabled={isAnalyzing}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/30 disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center hover:bg-blue-700"
+                      >
+                        {isAnalyzing ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <IconPlus className="w-6 h-6" />}
+                      </button>
+                    </div>
                   </div>
 
                   {Array.from(new Set(currentSessionSets.map(s => s.exerciseId))).map(exId => {
@@ -484,160 +555,201 @@ const App: React.FC = () => {
                     const isSwapping = swappingExerciseId === exId;
 
                     return (
-                      <div key={exId} className="space-y-4">
-                        <div className="flex justify-between items-start px-2">
-                          <div>
-                            <button
-                              onClick={async () => {
-                                if (formTipsExerciseId === exId) {
-                                  setFormTipsExerciseId(null);
-                                  return;
-                                }
-                                setFormTipsExerciseId(exId);
-                                setIsLoadingFormTips(true);
-                                const tips = await getFormTips(ex?.name || '');
-                                setFormTips(tips);
-                                setIsLoadingFormTips(false);
-                              }}
-                              className="text-left hover:opacity-80 transition-opacity"
-                            >
-                              <h3 className="text-2xl font-black text-slate-900 underline decoration-blue-500/30 decoration-2 underline-offset-4">{ex?.name}</h3>
-                            </button>
-                            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{ex?.muscleGroup}</p>
-                          </div>
-                          <button
-                            onClick={() => ex && handleSwapRequest(ex)}
-                            className="flex items-center space-x-2 text-slate-400 hover:text-blue-500 transition-colors bg-slate-100 px-3 py-1.5 rounded-lg"
-                          >
-                            <IconSwap className="w-4 h-4" />
-                            <span className="text-[10px] font-bold uppercase">Remplacer</span>
-                          </button>
-
-                        </div>
-
-                        {/* Form Tips */}
-                        {formTipsExerciseId === exId && (
-                          <div className="ios-card p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 animate-slide-up">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">💡 Conseils de forme</span>
-                              <button onClick={() => setFormTipsExerciseId(null)} className="text-slate-400 text-sm">✕</button>
+                      <div key={exId} className="relative group/ex">
+                        <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
+                          {/* Exercise Header */}
+                          <div className="px-8 py-8 border-b border-slate-50">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-1">
+                                <button
+                                  onClick={async () => {
+                                    if (formTipsExerciseId === exId) {
+                                      setFormTipsExerciseId(null);
+                                      return;
+                                    }
+                                    setFormTipsExerciseId(exId);
+                                    setIsLoadingFormTips(true);
+                                    const tips = await getFormTips(ex?.name || '');
+                                    setFormTips(tips);
+                                    setIsLoadingFormTips(false);
+                                  }}
+                                  className="group flex flex-col items-start transition-all"
+                                >
+                                  <h3 className="text-2xl font-black text-slate-900 leading-tight group-hover:text-blue-600 group-active:scale-95 transition-all">{ex?.name}</h3>
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-widest rounded-md">{ex?.muscleGroup}</span>
+                                    <span className="text-[10px] font-bold text-slate-300">•</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">IA Tips Dispo</span>
+                                  </div>
+                                </button>
+                              </div>
+                              <button
+                                onClick={() => ex && handleSwapRequest(ex)}
+                                className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-2xl transition-all"
+                                title="Remplacer"
+                              >
+                                <IconSwap className="w-5 h-5" />
+                              </button>
                             </div>
-                            {isLoadingFormTips ? (
-                              <div className="flex items-center space-x-2 text-sm text-slate-500">
-                                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                <span>Chargement des conseils...</span>
-                              </div>
-                            ) : (
-                              <ul className="space-y-1">
-                                {formTips.map((tip, i) => (
-                                  <li key={i} className="text-sm text-slate-700 flex items-start">
-                                    <span className="text-blue-500 mr-2">•</span>{tip}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
+
+                            {/* History Context inside header for clean look */}
+                            {(() => {
+                              const history = allSets
+                                .filter(s => s.exerciseId === exId && s.completed && new Date(s.date) < new Date(new Date().setHours(0, 0, 0, 0)))
+                                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                              if (history.length > 0) {
+                                const lastDate = history[0].date.split('T')[0];
+                                const lastSets = history.filter(s => s.date.startsWith(lastDate));
+                                const bestSet = lastSets.reduce((prev, current) => (prev.weight > current.weight ? prev : current), lastSets[0]);
+
+                                return (
+                                  <div className="mt-4 flex items-center space-x-4 bg-slate-50 p-3 rounded-2xl">
+                                    <div className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Dernier Record</span>
+                                      <div className="text-sm">
+                                        <span className="font-black text-slate-900">{bestSet.weight}kg</span>
+                                        <span className="text-slate-400 font-bold mx-1">×</span>
+                                        <span className="font-black text-slate-900">{bestSet.reps}</span>
+                                        <span className="text-[10px] text-slate-400 ml-2 font-medium">({new Date(lastDate).toLocaleDateString()})</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
-                        )}
 
-                        {/* History Context */}
-                        {
-                          (() => {
-                            // Find last session for this exercise
-                            // Sort allSets by date descending, filter by exerciseId and completed
-                            const history = allSets
-                              .filter(s => s.exerciseId === exId && s.completed && new Date(s.date) < new Date(new Date().setHours(0, 0, 0, 0))) // Strictly before today (or current session)
-                              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-                            if (history.length > 0) {
-                              const lastDate = history[0].date.split('T')[0];
-                              const lastSets = history.filter(s => s.date.startsWith(lastDate));
-                              const bestSet = lastSets.reduce((prev, current) => (prev.weight > current.weight ? prev : current), lastSets[0]);
-
-                              return (
-                                <div className="px-2 pb-2 flex items-center space-x-2 text-xs font-medium text-slate-500">
-                                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                  <span>Dernière séance: <span className="text-slate-900 font-bold">{bestSet.weight}kg x {bestSet.reps}</span> ({new Date(lastDate).toLocaleDateString()})</span>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()
-                        }
-
-                        {
-                          isSwapping && (
-                            <div className="ios-card p-6 bg-blue-600 text-white space-y-4 animate-slide-up">
-                              <div className="flex justify-between items-center">
-                                <h4 className="font-bold">Alternatives AI pour {ex?.name}</h4>
-                                <button onClick={() => setSwappingExerciseId(null)} className="text-white/60">Fermer</button>
+                          {/* Form Tips Overlay */}
+                          {formTipsExerciseId === exId && (
+                            <div className="bg-[#0f172a] text-white p-8 animate-slide-up border-b border-white/5 relative">
+                              <button onClick={() => setFormTipsExerciseId(null)} className="absolute right-6 top-6 w-8 h-8 flex items-center justify-center bg-white/10 rounded-full text-white/60 hover:text-white transition-colors">✕</button>
+                              <div className="flex items-center space-x-3 mb-6">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,1)]"></div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Assistant Technique AI</span>
                               </div>
-                              {isFindingAlternatives ? (
-                                <div className="flex items-center space-x-3 text-sm italic py-4">
-                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                  <span>Recherche de matériel équivalent...</span>
+                              {isLoadingFormTips ? (
+                                <div className="py-4 flex items-center space-x-4 text-slate-400">
+                                  <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                  <span className="text-sm font-medium italic">Analyse du mouvement en cours...</span>
                                 </div>
                               ) : (
-                                <div className="space-y-3">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                  {formTips.map((tip, i) => (
+                                    <div key={i} className="bg-white/5 p-4 rounded-3xl border border-white/5 hover:border-blue-500/30 transition-all">
+                                      <div className="text-blue-500 font-black mb-2 flex items-center space-x-2">
+                                        <span className="text-xs">0{i + 1}</span>
+                                        <div className="h-px w-4 bg-blue-500/30"></div>
+                                      </div>
+                                      <p className="text-sm font-medium leading-relaxed text-slate-300">{tip}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Swap Overlay */}
+                          {isSwapping && (
+                            <div className="bg-blue-600 text-white p-8 animate-slide-up">
+                              <div className="flex justify-between items-center mb-6">
+                                <div className="flex items-center space-x-3">
+                                  <IconSwap className="w-5 h-5" />
+                                  <h4 className="font-black uppercase tracking-tight">Remplaçants Recommandés</h4>
+                                </div>
+                                <button onClick={() => setSwappingExerciseId(null)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20 transition-all">✕</button>
+                              </div>
+                              {isFindingAlternatives ? (
+                                <div className="flex items-center space-x-3 py-10 opacity-60 italic">
+                                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  <span>Génération de variantes ergonomiques...</span>
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                   {alternatives.map((alt, i) => (
                                     <button
                                       key={i}
                                       onClick={() => ex && executeSwap(ex.id, alt.name)}
-                                      className="w-full text-left bg-white/10 hover:bg-white/20 p-4 rounded-xl transition-all"
+                                      className="p-5 bg-white/10 hover:bg-white/20 rounded-[1.5rem] text-left transition-all border border-white/10 hover:border-white/30 group/alt"
                                     >
-                                      <div className="font-bold">{alt.name}</div>
-                                      <div className="text-xs opacity-70">{alt.reason}</div>
+                                      <div className="font-black text-lg group-hover/alt:translate-x-1 transition-transform">{alt.name}</div>
+                                      <div className="text-xs text-white/60 mt-1 line-clamp-2 leading-relaxed">{alt.reason}</div>
                                     </button>
                                   ))}
-                                  <div className="pt-2">
+                                  <div className="group/input relative hidden md:block">
                                     <input
                                       type="text"
-                                      placeholder="Ou tapez un autre exercice..."
+                                      placeholder="Nom de l'exercice..."
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' && ex) executeSwap(ex.id, (e.target as HTMLInputElement).value);
                                       }}
-                                      className="w-full bg-white/20 border-none rounded-lg px-4 py-2 text-sm placeholder:text-white/40 focus:ring-0"
+                                      className="w-full h-full bg-black/10 border-2 border-dashed border-white/20 rounded-[1.5rem] px-5 py-4 text-sm placeholder:text-white/30 focus:outline-none focus:border-white/50 transition-all"
                                     />
                                   </div>
                                 </div>
                               )}
                             </div>
-                          )
-                        }
+                          )}
 
-                        <div className="ios-card overflow-hidden">
-                          {sets.map((s, idx) => (
-                            <div key={s.id} className={`ios-list-item px-6 py-5 flex items-center justify-between transition-colors ${s.completed ? 'bg-green-50/50' : 'hover:bg-slate-50'}`}>
-                              <div className="flex items-center space-x-6">
-                                <div className="w-8 h-8 flex items-center justify-center bg-slate-900 text-white rounded-xl text-xs font-black">
+                          {/* Sets List */}
+                          <div className="divide-y divide-slate-50">
+                            {sets.map((s, idx) => (
+                              <div key={s.id} className={`flex items-center gap-6 px-8 py-6 transition-all group/set ${s.completed ? 'bg-emerald-50/40' : 'hover:bg-slate-50'}`}>
+                                <div className={`w-12 h-12 flex items-center justify-center rounded-2xl text-lg font-black transition-all ${s.completed ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-12' : 'bg-[#0f172a] text-white shadow-md'}`}>
                                   {idx + 1}
                                 </div>
-                                <div className="flex space-x-6">
+
+                                <div className="flex-1 flex items-center gap-10">
                                   <div className="flex flex-col">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Poids</span>
-                                    <input
-                                      type="number" step="0.5" value={s.weight}
-                                      onChange={(e) => updateSetData(s.id, 'weight', parseFloat(e.target.value) || 0)}
-                                      className="text-lg font-bold bg-transparent border-b border-transparent focus:border-blue-500 focus:outline-none w-16"
-                                    />
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Charge (kg)</span>
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="number" step="0.5" value={s.weight}
+                                        onChange={(e) => updateSetData(s.id, 'weight', parseFloat(e.target.value) || 0)}
+                                        className="text-2xl font-black bg-transparent border-none focus:ring-0 w-24 p-0 text-slate-900"
+                                      />
+                                      <div className="flex flex-col opacity-0 group-hover/set:opacity-100 transition-opacity">
+                                        <button onClick={() => updateSetData(s.id, 'weight', s.weight + 2.5)} className="text-slate-300 hover:text-blue-500">▲</button>
+                                        <button onClick={() => updateSetData(s.id, 'weight', Math.max(0, s.weight - 2.5))} className="text-slate-300 hover:text-blue-500">▼</button>
+                                      </div>
+                                    </div>
                                   </div>
+
                                   <div className="flex flex-col">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Reps</span>
-                                    <input
-                                      type="number" value={s.reps}
-                                      onChange={(e) => updateSetData(s.id, 'reps', parseInt(e.target.value) || 0)}
-                                      className="text-lg font-bold bg-transparent border-b border-transparent focus:border-blue-500 focus:outline-none w-12"
-                                    />
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Objectif</span>
+                                    <div className="flex items-baseline space-x-2">
+                                      <input
+                                        type="number" value={s.reps}
+                                        onChange={(e) => updateSetData(s.id, 'reps', parseInt(e.target.value) || 0)}
+                                        className="text-2xl font-black bg-transparent border-none focus:ring-0 w-16 p-0 text-slate-900"
+                                      />
+                                      <span className="text-slate-300 font-bold text-sm">/ {s.targetReps}</span>
+                                    </div>
                                   </div>
                                 </div>
+
+                                <button
+                                  onClick={() => handleCompleteSet(s.id)}
+                                  className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-300 ${s.completed ? 'bg-emerald-500 text-white scale-90' : 'bg-slate-100 text-slate-300 hover:bg-blue-600 hover:text-white hover:shadow-xl hover:shadow-blue-500/20 active:scale-90 scale-100'}`}
+                                >
+                                  {s.completed ? (
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" /></svg>
+                                  ) : (
+                                    <span className="font-black text-sm uppercase">Done</span>
+                                  )}
+                                </button>
                               </div>
-                              <button
-                                onClick={() => handleCompleteSet(s.id)}
-                                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${s.completed ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' : 'bg-slate-100 text-slate-300'}`}
-                              >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" /></svg>
-                              </button>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Floating Action Menu for exercise */}
+                        <div className="absolute -right-3 top-[-10px] hidden group-hover/ex:flex flex-col gap-2 z-10 animate-slide-up">
+                          <div className="w-8 h-8 bg-white border border-slate-100 rounded-full shadow-lg flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors pointer-cursor">✕</div>
                         </div>
                       </div>
                     );
@@ -649,11 +761,12 @@ const App: React.FC = () => {
 
 
           {activeTab === 'plan' && (
-            <div className="max-w-4xl mx-auto space-y-10 animate-slide-up">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h2 className="text-3xl font-black text-slate-900">Gestion des routines</h2>
-                  <p className="text-slate-500 font-medium">Créez et personnalisez vos jours d'entraînement.</p>
+            <div className="max-w-5xl mx-auto space-y-16 animate-slide-up">
+              {/* Header section with Action */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-100 pb-10">
+                <div className="space-y-2">
+                  <h2 className="text-4xl font-[900] text-slate-900 tracking-tight">Configuration</h2>
+                  <p className="text-slate-500 font-medium">Structurez vos programmes et vos objectifs physiologiques.</p>
                 </div>
                 <button
                   onClick={() => {
@@ -663,83 +776,100 @@ const App: React.FC = () => {
                     saveRoutines(updated);
                     switchActiveRoutine(newRoutine.id);
                   }}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center space-x-2 shadow-lg"
+                  className="bg-[#0f172a] text-white px-8 py-4 rounded-[1.5rem] font-black flex items-center space-x-3 shadow-xl hover:bg-blue-600 transition-all active:scale-95 group"
                 >
-                  <IconPlus className="w-5 h-5" />
-                  <span>Nouvelle Routine</span>
+                  <IconPlus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                  <span>Nouveau Programme</span>
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Routines Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {routines.map(r => (
                   <div
                     key={r.id}
-                    className={`p-6 rounded-3xl border-2 transition-all flex flex-col ${activeRoutineId === r.id ? 'border-blue-600 bg-blue-50/20 shadow-lg' : 'border-white bg-white shadow-sm hover:border-slate-100'}`}
+                    className={`relative p-8 rounded-[2.5rem] border-2 transition-all duration-300 flex flex-col group ${activeRoutineId === r.id ? 'border-blue-600 bg-blue-50/20 shadow-xl' : 'border-white bg-white shadow-lg shadow-slate-200/30 hover:border-slate-100'}`}
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="font-bold text-lg text-slate-900">{r.name}</div>
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="space-y-1">
+                        <div className="font-black text-xl text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{r.name}</div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{r.exerciseIds.length} Exercices</p>
+                      </div>
                       <button
                         onClick={() => {
                           const updated = routines.filter(rt => rt.id !== r.id);
                           setRoutines(updated);
                           saveRoutines(updated);
                         }}
-                        className="text-slate-300 hover:text-red-500 transition-colors"
+                        className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" /></svg>
                       </button>
                     </div>
 
-                    <div className="flex-1 space-y-2 mb-6">
+                    <div className="flex-1 space-y-3 mb-8">
                       {r.exerciseIds.length === 0 ? (
-                        <div className="text-xs text-slate-400 italic">Aucun exercice</div>
+                        <div className="text-sm text-slate-400 italic py-4">Pas d'exercices configurés</div>
                       ) : (
-                        r.exerciseIds.slice(0, 4).map(eid => (
-                          <div key={eid} className="text-xs font-semibold text-slate-500 flex items-center">
-                            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2"></div>
-                            {exercises.find(e => e.id === eid)?.name}
+                        r.exerciseIds.slice(0, 5).map(eid => (
+                          <div key={eid} className="text-[11px] font-bold text-slate-500 flex items-center">
+                            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-3"></div>
+                            <span className="truncate">{exercises.find(e => e.id === eid)?.name}</span>
                           </div>
                         ))
                       )}
-                      {r.exerciseIds.length > 4 && <div className="text-[10px] font-black text-blue-500 uppercase">+{r.exerciseIds.length - 4} AUTRES</div>}
+                      {r.exerciseIds.length > 5 && <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest pt-1">+{r.exerciseIds.length - 5} autres types</div>}
                     </div>
 
                     <button
                       onClick={() => switchActiveRoutine(r.id)}
-                      className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${activeRoutineId === r.id ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                      className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeRoutineId === r.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-50 text-slate-500 hover:bg-slate-900 hover:text-white'}`}
                     >
-                      {activeRoutineId === r.id ? 'Routine Active' : 'Sélectionner'}
+                      {activeRoutineId === r.id ? 'Sélectionné' : 'Configurer'}
                     </button>
                   </div>
                 ))}
               </div>
 
               {activeRoutine && (
-                <div className="mt-12 space-y-6">
-                  <h3 className="text-xl font-bold">Modifier "{activeRoutine.name}"</h3>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Ajouter un exo via IA (ex: 'Developpé incliné haltères')..."
-                      value={customInput}
-                      onChange={(e) => setCustomInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddCustomExercise(false)}
-                      className="w-full pl-6 pr-14 py-5 bg-white ios-card focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-lg"
-                    />
-                    <button onClick={() => handleAddCustomExercise(false)} disabled={isAnalyzing} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-blue-600">
-                      {isAnalyzing ? <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <IconPlus className="w-8 h-8" />}
-                    </button>
+                <div className="mt-20 space-y-10 animate-slide-up">
+                  <div className="bg-[#0f172a] rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em]">Édition avancée</span>
+                        <h3 className="text-3xl font-[900] tracking-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-lg">{activeRoutine.name}</h3>
+                      </div>
+
+                      <div className="relative flex-1 max-w-md">
+                        <input
+                          type="text"
+                          placeholder="Ajouter via AI Coach..."
+                          value={customInput}
+                          onChange={(e) => setCustomInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleAddCustomExercise(false)}
+                          className="w-full pl-6 pr-14 py-4 bg-white/10 rounded-2xl border border-white/10 focus:outline-none focus:bg-white/20 transition-all text-lg placeholder:text-white/20"
+                        />
+                        <button onClick={() => handleAddCustomExercise(false)} disabled={isAnalyzing} className="absolute right-4 top-1/2 -translate-y-1/2 text-white">
+                          {isAnalyzing ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <IconPlus className="w-6 h-6" />}
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 pb-12">
                     {exercises.map(ex => {
                       const isSelected = activeRoutine.exerciseIds.includes(ex.id);
                       return (
-                        <div key={ex.id} className={`rounded-2xl border-2 transition-all ${isSelected ? 'border-blue-500 bg-blue-50/50' : 'border-white bg-white hover:border-slate-100'}`}>
-                          <div className="p-4 flex items-center justify-between">
-                            <div>
-                              <div className="font-bold text-slate-900">{ex.name}</div>
-                              <div className="text-[10px] font-bold text-slate-400 uppercase">{ex.muscleGroup}</div>
+                        <div key={ex.id} className={`rounded-[2rem] border-2 transition-all duration-300 overflow-hidden ${isSelected ? 'border-blue-500 bg-white shadow-xl shadow-blue-500/5' : 'border-white bg-white shadow-sm opacity-60 hover:opacity-100 hover:border-slate-100'}`}>
+                          <div className="p-6 flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black ${isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400'}`}>
+                                {ex.name[0]}
+                              </div>
+                              <div>
+                                <div className="font-black text-slate-900 group-hover:text-blue-600">{ex.name}</div>
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{ex.muscleGroup}</div>
+                              </div>
                             </div>
                             <button
                               onClick={() => {
@@ -750,18 +880,17 @@ const App: React.FC = () => {
                                 setRoutines(updatedRoutines);
                                 saveRoutines(updatedRoutines);
                               }}
-                              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100'}`}
+                              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 text-slate-300'}`}
                             >
-                              {isSelected ? <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" /></svg> : <IconPlus className="w-4 h-4 text-slate-400" />}
+                              {isSelected ? <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" /></svg> : <IconPlus className="w-5 h-5" />}
                             </button>
                           </div>
 
                           {isSelected && (
-                            <div className="px-4 pb-4 flex items-center justify-between text-sm border-t border-blue-200/50 pt-3 mt-1">
-                              <span className="text-slate-500 font-bold text-xs uppercase">Objectifs:</span>
-                              <div className="flex space-x-4">
-                                <label className="flex items-center space-x-2">
-                                  <span className="text-xs font-semibold text-slate-400">Séries</span>
+                            <div className="px-6 py-6 bg-slate-50 flex items-center justify-between gap-6 border-t border-slate-100">
+                              <div className="flex items-center gap-6">
+                                <div className="flex flex-col">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Séries</span>
                                   <input
                                     type="number" min="1" max="10"
                                     value={activeRoutine.targets?.[ex.id]?.sets || 3}
@@ -775,11 +904,11 @@ const App: React.FC = () => {
                                       setRoutines(updatedRoutines);
                                       saveRoutines(updatedRoutines);
                                     }}
-                                    className="w-12 bg-slate-100 rounded-lg px-2 py-1 text-center font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-16 bg-white border border-slate-200 rounded-xl px-2 py-2 text-center font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                   />
-                                </label>
-                                <label className="flex items-center space-x-2">
-                                  <span className="text-xs font-semibold text-slate-400">Reps</span>
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Répétitions</span>
                                   <input
                                     type="number" min="1" max="50"
                                     value={activeRoutine.targets?.[ex.id]?.reps || 10}
@@ -793,9 +922,9 @@ const App: React.FC = () => {
                                       setRoutines(updatedRoutines);
                                       await saveRoutines(updatedRoutines);
                                     }}
-                                    className="w-12 bg-slate-100 rounded-lg px-2 py-1 text-center font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-16 bg-white border border-slate-200 rounded-xl px-2 py-2 text-center font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                   />
-                                </label>
+                                </div>
                               </div>
                             </div>
                           )}
@@ -806,49 +935,63 @@ const App: React.FC = () => {
                 </div>
               )}
 
-              {/* Volume Goals Settings */}
-              <div className="mt-12 space-y-6">
-                <h3 className="text-xl font-bold text-slate-800">Objectifs de volume hebdomadaire</h3>
-                <p className="text-slate-500 text-sm">Définissez le nombre de séries cibles par groupe musculaire.</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {/* Advanced System Settings */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-16 border-t border-slate-100">
+                <div className="lg:col-span-12">
+                  <h3 className="text-3xl font-[900] text-slate-900 tracking-tight mb-2">Objectifs de Performance</h3>
+                  <p className="text-slate-500 font-medium">Déterminez vos seuils de surcharge progressive hebdomadaires.</p>
+                </div>
+
+                <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                   {Object.values(MuscleGroup).map(muscle => (
-                    <div key={muscle} className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
-                      <span className="text-sm font-bold text-slate-700">{muscle}</span>
+                    <div key={muscle} className="bg-white p-6 rounded-[2rem] shadow-lg shadow-slate-200/30 border border-slate-50 flex items-center justify-between group hover:border-blue-500/20 transition-all">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{muscle}</span>
+                        <span className="text-sm font-black text-slate-900 leading-none">Sets/Semaine</span>
+                      </div>
                       <input
-                        type="number"
-                        min="0"
-                        max="30"
+                        type="number" min="0" max="30"
                         value={volumeGoals[muscle] || 15}
                         onChange={async (e) => {
                           const newGoals = { ...volumeGoals, [muscle]: parseInt(e.target.value) || 0 };
                           setVolumeGoals(newGoals);
                           await saveUserSettings({ volumeGoals: newGoals, defaultRestTime });
                         }}
-                        className="w-16 bg-slate-100 rounded-lg px-3 py-2 text-center font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-14 bg-slate-50 rounded-xl px-2 py-3 text-center font-black text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 group-hover:bg-blue-50 transition-colors"
                       />
                     </div>
                   ))}
                 </div>
-              </div>
 
-              {/* Rest Timer Settings */}
-              <div className="mt-8 space-y-4">
-                <h3 className="text-xl font-bold text-slate-800">Timer de repos par défaut</h3>
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center justify-between max-w-sm">
-                  <span className="text-sm font-bold text-slate-700">Durée (secondes)</span>
-                  <input
-                    type="number"
-                    min="30"
-                    max="300"
-                    step="15"
-                    value={defaultRestTime}
-                    onChange={async (e) => {
-                      const newTime = parseInt(e.target.value) || 90;
-                      setDefaultRestTime(newTime);
-                      await saveUserSettings({ volumeGoals, defaultRestTime: newTime });
-                    }}
-                    className="w-20 bg-slate-100 rounded-lg px-3 py-2 text-center font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                <div className="lg:col-span-4">
+                  <div className="bg-[#0f172a] p-8 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden h-full flex flex-col justify-center">
+                    <div className="relative z-10 space-y-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" /></svg>
+                        </div>
+                        <span className="text-sm font-black uppercase tracking-widest text-blue-400">Rest Engine</span>
+                      </div>
+                      <div className="space-y-4">
+                        <h4 className="text-xl font-black">Repos Préconisé</h4>
+                        <div className="flex items-center justify-between bg-white/5 p-4 rounded-3xl border border-white/5">
+                          <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Secondes</span>
+                          <input
+                            type="number" min="30" max="300" step="15"
+                            value={defaultRestTime}
+                            onChange={async (e) => {
+                              const newTime = parseInt(e.target.value) || 90;
+                              setDefaultRestTime(newTime);
+                              await saveUserSettings({ volumeGoals, defaultRestTime: newTime });
+                            }}
+                            className="w-20 bg-white/10 rounded-xl px-3 py-2 text-center font-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    {/* Glow effect */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl"></div>
+                  </div>
                 </div>
               </div>
             </div>

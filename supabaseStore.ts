@@ -128,14 +128,19 @@ export const deleteRoutine = async (id: string) => {
 
 // User Settings
 export const getUserSettings = async (): Promise<UserSettings | null> => {
-    const { data, error } = await supabase.from('user_settings').select('*').single();
-    if (error && error.code !== 'PGRST116') console.error('Get settings error:', error);
-    if (!data) return null;
+    // Using limit(1) instead of single() to avoid 406 Not Acceptable if multiple rows exist (due to poor previous upsert logic)
+    const { data, error } = await supabase.from('user_settings').select('*').limit(1);
+    if (error) {
+        console.error('Get settings error:', error);
+        return null;
+    }
+    if (!data || data.length === 0) return null;
+    const row = data[0];
     return {
-        id: data.id,
-        user_id: data.user_id,
-        volumeGoals: data.volume_goals || DEFAULT_VOLUME_GOALS,
-        defaultRestTime: data.default_rest_time || 90
+        id: row.id,
+        user_id: row.user_id,
+        volumeGoals: row.volume_goals || DEFAULT_VOLUME_GOALS,
+        defaultRestTime: row.default_rest_time || 90
     };
 };
 
@@ -143,8 +148,10 @@ export const saveUserSettings = async (settings: UserSettings) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
 
+    // We use the user_id as the predictable primary key ID if not provided, 
+    // to ensure we only ever have ONE row per user in the table.
     const dbSettings = {
-        id: settings.id || Math.random().toString(36).substr(2, 9),
+        id: settings.id || `settings_${userData.user.id}`,
         user_id: userData.user.id,
         volume_goals: settings.volumeGoals,
         default_rest_time: settings.defaultRestTime
