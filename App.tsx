@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { MuscleGroup, Exercise, SetLog, WeeklyVolume, Routine, UserSettings, DEFAULT_VOLUME_GOALS } from './types';
-import { getExercises, getSets, getRoutines, saveSets, saveExercise, saveRoutines, signInWithGoogle, signOut, seedDefaultData, getUserSettings, saveUserSettings } from './supabaseStore';
+import { getExercises, getSets, getRoutines, saveSets, saveExercise, saveRoutines, signInWithGoogle, signOut, seedDefaultData, getUserSettings, saveUserSettings, deleteRoutine } from './supabaseStore';
 import { supabase } from './supabaseClient';
 import { IconDashboard, IconPlay, IconSettings, IconPlus, IconSwap } from './components/Icons';
 import Timer from './components/Timer';
@@ -348,7 +348,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#f8fafc]">
       {/* Sidebar Navigation (Desktop) */}
-      <nav className="hidden md:flex flex-col w-24 bg-[#0f172a] text-white h-screen sticky top-0 py-8 overflow-hidden items-center border-r border-slate-800/50">
+      <nav className="hidden md:flex flex-col w-24 bg-[#0f172a] text-white h-screen sticky top-0 py-8 items-center border-r border-slate-800/50 z-50">
 
         <div className="mb-12 flex justify-center w-full">
           <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center font-black text-xl tracking-tighter shadow-xl shadow-slate-900/20">
@@ -363,7 +363,7 @@ const App: React.FC = () => {
           >
             <IconDashboard className="w-6 h-6" />
             {activeTab === 'dashboard' && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/20 rounded-l-full"></div>}
-            <div className="absolute left-14 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+            <div className="absolute left-20 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl z-[60] border border-white/10">
               Dashboard
             </div>
           </button>
@@ -374,7 +374,7 @@ const App: React.FC = () => {
           >
             <IconPlay className="w-6 h-6" />
             {activeTab === 'workout' && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/20 rounded-l-full"></div>}
-            <div className="absolute left-14 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+            <div className="absolute left-20 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl z-[60] border border-white/10">
               Workout
             </div>
           </button>
@@ -385,7 +385,7 @@ const App: React.FC = () => {
           >
             <IconSettings className="w-6 h-6" />
             {activeTab === 'plan' && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/20 rounded-l-full"></div>}
-            <div className="absolute left-14 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+            <div className="absolute left-20 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl z-[60] border border-white/10">
               Plan
             </div>
           </button>
@@ -842,10 +842,12 @@ const App: React.FC = () => {
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{r.exerciseIds.length} Exercices</p>
                       </div>
                       <button
-                        onClick={() => {
-                          const updated = routines.filter(rt => rt.id !== r.id);
-                          setRoutines(updated);
-                          saveRoutines(updated);
+                        onClick={async () => {
+                          if (confirm('Supprimer cette routine ?')) {
+                            const updated = routines.filter(rt => rt.id !== r.id);
+                            setRoutines(updated);
+                            await deleteRoutine(r.id);
+                          }
                         }}
                         className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
                       >
@@ -893,7 +895,7 @@ const App: React.FC = () => {
                           value={customInput}
                           onChange={(e) => setCustomInput(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && handleCreateRoutineAI()}
-                          className="w-full pl-6 pr-14 py-5 bg-white ios-card focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-lg font-medium placeholder:text-slate-400"
+                          className="w-full pl-6 pr-14 py-5 bg-white ios-card focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-lg font-black placeholder:text-slate-400 text-slate-900"
                         />
                         <button onClick={() => handleCreateRoutineAI()} disabled={isAnalyzing} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
                           {isAnalyzing ? <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <div className="flex items-center space-x-1"><span className="text-xs font-black uppercase">Générer</span><IconPlus className="w-5 h-5" /></div>}
