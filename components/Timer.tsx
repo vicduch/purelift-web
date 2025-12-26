@@ -135,15 +135,6 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds = 90, onClose }) => {
           >
             Reprendre l'effort
           </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsExpanded(false);
-            }}
-            className="w-full h-12 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95 pointer-events-auto"
-          >
-            Réduire (Navigation libre)
-          </button>
         </div>
       </div>
     </div>
