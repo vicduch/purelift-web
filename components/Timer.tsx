@@ -10,6 +10,7 @@ interface TimerProps {
 const Timer: React.FC<TimerProps> = ({ initialSeconds = 90, onClose }) => {
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
   const [isActive, setIsActive] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(true);
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -40,9 +41,52 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds = 90, onClose }) => {
 
   const progress = (timeLeft / initialSeconds) * 100;
 
+  if (!isExpanded) {
+    return (
+      <div
+        className="fixed bottom-24 md:bottom-8 right-6 z-[60] animate-slide-up"
+        onClick={() => setIsExpanded(true)}
+      >
+        <div className="bg-zinc-900/90 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-full cursor-pointer hover:bg-zinc-800 transition-all shadow-xl flex items-center space-x-3 group">
+          <div className="relative w-6 h-6 flex items-center justify-center">
+            <svg className="w-full h-full -rotate-90">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="transparent" className="text-white/5" />
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="transparent"
+                className="text-white transition-all duration-1000 opacity-40"
+                strokeDasharray={62.8}
+                strokeDashoffset={62.8 - (62.8 * progress) / 100}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className={`absolute inset-0 flex items-center justify-center ${timeLeft < 10 ? 'animate-pulse text-red-500' : ''}`}>
+              <div className="w-1 h-1 bg-white rounded-full"></div>
+            </div>
+          </div>
+          <span className={`text-sm font-black tracking-tighter ${timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+            {formatTime(timeLeft)}
+          </span>
+          <div className="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 8h16M4 16h16" /></svg>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed bottom-12 right-12 z-50 animate-slide-up">
-      <div className="bg-[#0f172a] text-white p-8 rounded-[3rem] shadow-2xl shadow-blue-500/20 border border-white/5 flex flex-col items-center space-y-6 min-w-[300px] relative overflow-hidden">
+    <div className="fixed inset-0 z-[100] md:inset-auto md:bottom-24 md:right-8 animate-slide-up flex items-center justify-center pointer-events-none md:block">
+      <div
+        className="bg-[#0f172a] text-white p-8 rounded-[3rem] shadow-2xl shadow-blue-500/20 border border-white/5 flex flex-col items-center space-y-6 min-w-[300px] relative overflow-hidden pointer-events-auto"
+      >
+        <div className="absolute top-6 right-8">
+          <button
+            onClick={() => setIsExpanded(false)}
+            className="p-2 text-white/40 hover:text-white transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
+          </button>
+        </div>
+
         {/* Background Glow */}
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl"></div>
 
@@ -59,7 +103,7 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds = 90, onClose }) => {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-3xl font-[900] tracking-tighter">{formatTime(timeLeft)}</span>
-            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Séquence Repos</span>
+            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Repos</span>
           </div>
         </div>
 

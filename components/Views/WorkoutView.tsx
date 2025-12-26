@@ -3,7 +3,6 @@ import { Routine, Exercise, SetLog } from '../../types';
 import { Card } from '../UI/Card';
 import { Button } from '../UI/Button';
 import { IconPlay, IconPlus, IconSwap } from '../Icons';
-import Timer from '../Timer';
 
 interface WorkoutViewProps {
     activeRoutine: Routine | undefined;
@@ -15,8 +14,6 @@ interface WorkoutViewProps {
     onUpdateSet: (setId: string, field: 'reps' | 'weight', value: number) => void;
     onFinishWorkout: () => void;
     onSwapExercise: (ex: Exercise) => void;
-    isTimerVisible: boolean;
-    setIsTimerVisible: (visible: boolean) => void;
     timerDuration: number;
     isAnalyzing: boolean;
     history: SetLog[];
@@ -32,8 +29,6 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({
     onUpdateSet,
     onFinishWorkout,
     onSwapExercise,
-    isTimerVisible,
-    setIsTimerVisible,
     timerDuration,
     isAnalyzing,
     history
@@ -168,8 +163,6 @@ export const WorkoutView: React.FC<WorkoutViewProps> = ({
                     FINISH WORKOUT
                 </Button>
             </div>
-
-            {isTimerVisible && <Timer initialSeconds={timerDuration} onClose={() => setIsTimerVisible(false)} />}
         </div>
     );
 };

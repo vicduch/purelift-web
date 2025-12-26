@@ -305,6 +305,9 @@ const App: React.FC = () => {
       user={session?.user}
       onSignIn={signInWithGoogle}
       onSignOut={signOut}
+      isTimerVisible={isTimerVisible}
+      timerDuration={defaultRestTime}
+      onTimerClose={() => setIsTimerVisible(false)}
     >
       <div className="px-4 md:px-8 py-6 max-w-7xl mx-auto h-full">
         <header className="mb-8 md:mb-12 flex justify-between items-end">
@@ -349,8 +352,6 @@ const App: React.FC = () => {
             onUpdateSet={updateSetData}
             onFinishWorkout={finishWorkout}
             onSwapExercise={(ex) => setSwappingExerciseId(ex.id)} // Placeholder for now, swap logic needs View integration if popup
-            isTimerVisible={isTimerVisible}
-            setIsTimerVisible={setIsTimerVisible}
             timerDuration={defaultRestTime}
             isAnalyzing={isAnalyzing}
             history={allSets}

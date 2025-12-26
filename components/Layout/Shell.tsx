@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconDashboard, IconPlay, IconSettings } from '../Icons';
+import Timer from '../Timer';
 
 interface ShellProps {
     children: React.ReactNode;
@@ -8,6 +9,9 @@ interface ShellProps {
     user?: any;
     onSignOut?: () => void;
     onSignIn?: () => void;
+    isTimerVisible?: boolean;
+    timerDuration?: number;
+    onTimerClose?: () => void;
 }
 
 export const Shell: React.FC<ShellProps> = ({
@@ -16,7 +20,10 @@ export const Shell: React.FC<ShellProps> = ({
     onTabChange,
     user,
     onSignOut,
-    onSignIn
+    onSignIn,
+    isTimerVisible,
+    timerDuration,
+    onTimerClose
 }) => {
     return (
         <div className="min-h-screen flex flex-col md:flex-row bg-zinc-950 text-zinc-100 font-sans selection:bg-zinc-700 selection:text-white">
@@ -99,6 +106,10 @@ export const Shell: React.FC<ShellProps> = ({
                     label="Plan"
                 />
             </nav>
+
+            {isTimerVisible && (
+                <Timer initialSeconds={timerDuration} onClose={onTimerClose!} />
+            )}
         </div>
     );
 };
