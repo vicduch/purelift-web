@@ -78,12 +78,18 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds = 90, onClose }) => {
       <div
         className="bg-[#0f172a] text-white p-8 rounded-[3rem] shadow-2xl shadow-blue-500/20 border border-white/5 flex flex-col items-center space-y-6 min-w-[300px] relative overflow-hidden pointer-events-auto"
       >
-        <div className="absolute top-6 right-8">
+        {/* Bouton Réduire (Top Right) */}
+        <div className="absolute top-6 right-6">
           <button
-            onClick={() => setIsExpanded(false)}
-            className="p-2 text-white/40 hover:text-white transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(false);
+            }}
+            className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-full text-white transition-all active:scale-90 border border-white/5 pointer-events-auto"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+            </svg>
           </button>
         </div>
 
@@ -122,12 +128,23 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds = 90, onClose }) => {
           </button>
         </div>
 
-        <button
-          onClick={onClose}
-          className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20 transition-all active:scale-95"
-        >
-          Reprendre l'effort
-        </button>
+        <div className="w-full space-y-3">
+          <button
+            onClick={onClose}
+            className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20 transition-all active:scale-95 pointer-events-auto"
+          >
+            Reprendre l'effort
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(false);
+            }}
+            className="w-full h-12 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95 pointer-events-auto"
+          >
+            Réduire (Navigation libre)
+          </button>
+        </div>
       </div>
     </div>
   );
